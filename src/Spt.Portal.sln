@@ -1,0 +1,78 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spt.Portal.Web", "Spt.Portal.Web\Spt.Portal.Web.csproj", "{DF7CB786-7667-4FE7-A589-D6EE45BD717C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{1E28FA50-B8EF-4EF8-A4FD-C71EB749E2C0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spt.Shared.Core", "..\core\Spt.Shared.Core\Spt.Shared.Core.csproj", "{E8E2D472-EFE9-4054-8EF7-C8C28E9CC22B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spt.Shared.Domain", "..\core\Spt.Shared.Domain\Spt.Shared.Domain.csproj", "{B1C48105-758D-4BE1-B249-FCA28289A8AA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spt.Shared.Logic", "..\core\Spt.Shared.Logic\Spt.Shared.Logic.csproj", "{FBE71356-149E-401E-BB2D-A98A6FEEF532}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spt.Shared.Store.EntityFramework", "..\core\Spt.Shared.Store.EntityFramework\Spt.Shared.Store.EntityFramework.csproj", "{E28646CF-D847-4F9F-B543-F9AED13B1A03}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spt.Shared.AspNetCore", "..\core\Spt.Shared.AspNetCore\Spt.Shared.AspNetCore.csproj", "{E8399043-BD46-476F-BFB8-5646CD7A72CE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{16A93CAA-F0DD-45CE-A815-6FE462A39215}"
+	ProjectSection(SolutionItems) = preProject
+		..\config\azure-pipelines.yml = ..\config\azure-pipelines.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "k8s", "k8s", "{6646BBCE-39E8-4253-8D33-E75F91121CE8}"
+	ProjectSection(SolutionItems) = preProject
+		..\config\k8s\deployment.yml = ..\config\k8s\deployment.yml
+		..\config\k8s\ingress-route.yml = ..\config\k8s\ingress-route.yml
+		..\config\k8s\ingress.yml = ..\config\k8s\ingress.yml
+		..\config\k8s\service.yml = ..\config\k8s\service.yml
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DF7CB786-7667-4FE7-A589-D6EE45BD717C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF7CB786-7667-4FE7-A589-D6EE45BD717C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF7CB786-7667-4FE7-A589-D6EE45BD717C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF7CB786-7667-4FE7-A589-D6EE45BD717C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8E2D472-EFE9-4054-8EF7-C8C28E9CC22B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8E2D472-EFE9-4054-8EF7-C8C28E9CC22B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8E2D472-EFE9-4054-8EF7-C8C28E9CC22B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8E2D472-EFE9-4054-8EF7-C8C28E9CC22B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1C48105-758D-4BE1-B249-FCA28289A8AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1C48105-758D-4BE1-B249-FCA28289A8AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1C48105-758D-4BE1-B249-FCA28289A8AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1C48105-758D-4BE1-B249-FCA28289A8AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBE71356-149E-401E-BB2D-A98A6FEEF532}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBE71356-149E-401E-BB2D-A98A6FEEF532}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBE71356-149E-401E-BB2D-A98A6FEEF532}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBE71356-149E-401E-BB2D-A98A6FEEF532}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E28646CF-D847-4F9F-B543-F9AED13B1A03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E28646CF-D847-4F9F-B543-F9AED13B1A03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E28646CF-D847-4F9F-B543-F9AED13B1A03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E28646CF-D847-4F9F-B543-F9AED13B1A03}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8399043-BD46-476F-BFB8-5646CD7A72CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8399043-BD46-476F-BFB8-5646CD7A72CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8399043-BD46-476F-BFB8-5646CD7A72CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8399043-BD46-476F-BFB8-5646CD7A72CE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E8E2D472-EFE9-4054-8EF7-C8C28E9CC22B} = {1E28FA50-B8EF-4EF8-A4FD-C71EB749E2C0}
+		{B1C48105-758D-4BE1-B249-FCA28289A8AA} = {1E28FA50-B8EF-4EF8-A4FD-C71EB749E2C0}
+		{FBE71356-149E-401E-BB2D-A98A6FEEF532} = {1E28FA50-B8EF-4EF8-A4FD-C71EB749E2C0}
+		{E28646CF-D847-4F9F-B543-F9AED13B1A03} = {1E28FA50-B8EF-4EF8-A4FD-C71EB749E2C0}
+		{E8399043-BD46-476F-BFB8-5646CD7A72CE} = {1E28FA50-B8EF-4EF8-A4FD-C71EB749E2C0}
+		{6646BBCE-39E8-4253-8D33-E75F91121CE8} = {16A93CAA-F0DD-45CE-A815-6FE462A39215}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0CBE306F-8B51-464D-B692-5EF6936B5EED}
+	EndGlobalSection
+EndGlobal

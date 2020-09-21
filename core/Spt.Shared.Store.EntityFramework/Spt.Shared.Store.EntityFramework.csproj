@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mapster" Version="6.5.0" />
+    <PackageReference Include="MediatR" Version="8.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Spt.Shared.Core\Spt.Shared.Core.csproj" />
+    <ProjectReference Include="..\Spt.Shared.Domain\Spt.Shared.Domain.csproj" />
+    <ProjectReference Include="..\Spt.Shared.Logic\Spt.Shared.Logic.csproj" />
+  </ItemGroup>
+
+</Project>

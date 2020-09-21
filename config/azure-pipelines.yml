@@ -1,0 +1,321 @@
+name: 0.1$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+    - master
+    - refs/tags/*
+    - refs/pull/*
+
+resources:
+- repo: self
+
+pool:
+    vmImage: ubuntu-latest
+  
+variables:
+  image-tag: $(Build.BuildNumber)
+  replicas: "1"
+  k8ns-pr: pr$(System.PullRequest.PullRequestId)
+  k8s-admin-endpoint: sptcloud-admin
+  vsts-organization: sptab
+  vsts-project: CLOUD
+  vsts-repository: ec306ed9-d8c1-4c8d-a8bd-fd2561a55350
+  pr-host-suffix: w4b7rnbn8m.weu.azds.io
+  dockerRegistryServiceConnection: sptcloud
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    steps:
+    - checkout: self
+      submodules: true
+    - task: UseNode@1
+      displayName: 'Use Node 12.x'
+      inputs:
+        version: 12.x
+    - task: UseDotNet@2
+      displayName: 'Use dotnet sdk 3.x'
+      inputs:
+        version: 3.x
+    - task: NuGetToolInstaller@1
+      displayName: 'Use NuGet'
+      inputs:
+        checkLatest: true
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: restore
+        projects: '**/*.csproj'
+        #vstsFeed: 'Private'
+    - task: DockerInstaller@0
+      displayName: 'Install Docker 17.09.0-ce'
+    - task: Docker@2
+      displayName: 'Login in sptcloud repository'
+      inputs:
+        containerRegistry: sptcloud
+        command: login
+    - task: Bash@3
+      displayName: Spt.Portal.Web
+      inputs:
+        targetType: filePath
+        filePath: ./src/Spt.Portal.Web/build.sh
+        workingDirectory: src/Spt.Portal.Web/
+        failOnStderr: true
+    - task: CopyFiles@2
+      inputs:
+        contents: $(build.sourcesDirectory)/config/k8s/*.*
+        targetFolder: $(build.artifactStagingDirectory)
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: $(build.artifactStagingDirectory)
+        artifactName: manifests
+
+- stage: Deploy_DEV
+  displayName: DEV
+  dependsOn: Build
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  variables:
+    - group: ApplicationInsights-InstrumentationKey-Dev
+    - group: ConnectionStrings-Dev
+    - group: NativeClientOAuthConfiguration-Dev
+    - name: k8s-namespace
+      value: sptcloud-dev
+    - name: route-host
+      value: cloud-dev.sptab.com
+  jobs:  
+  - deployment: Dev
+    displayName: Deploy to Dev
+    environment: sptcloud-dev.sptcloud-dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: Replace tokens in config/**/*.yml
+            inputs:
+              rootDirectory: $(Pipeline.Workspace)/manifests
+              targetFiles: '**/*.yml'
+              keepToken: true
+              tokenPrefix: $(
+              tokenSuffix: )
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              manifests: $(Pipeline.Workspace)/manifests/config/k8s/+(deployment.yml|service.yml|ingress-route.yml)
+
+- stage: Deploy_QA
+  displayName: QA
+  dependsOn: Deploy_DEV
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/tags/qa'),eq(variables['Build.SourceBranch'], 'refs/tags/int'),eq(variables['Build.SourceBranch'], 'refs/tags/prod')))
+  variables:
+    - group: ApplicationInsights-InstrumentationKey-Staging
+    - group: ConnectionStrings-Staging
+    - group: NativeClientOAuthConfiguration-Staging
+    - name: k8s-namespace
+      value: sptcloud-qa
+    - name: route-host
+      value: cloud-qa.sptab.com
+  jobs:  
+  - deployment: Staging
+    displayName: Deploy to Staging
+    environment: sptcloud-qa.sptcloud-qa
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: Replace tokens in config/**/*.yml
+            inputs:
+              rootDirectory: $(Pipeline.Workspace)/manifests
+              targetFiles: '**/*.yml'
+              keepToken: true
+              tokenPrefix: $(
+              tokenSuffix: )
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              manifests: $(Pipeline.Workspace)/manifests/config/k8s/+(deployment.yml|service.yml|ingress-route.yml)
+
+- stage: Deploy_INT
+  displayName: INT
+  dependsOn: Deploy_QA
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/tags/int'))
+  variables:
+    - group: ApplicationInsights-InstrumentationKey-Int
+    - group: ConnectionStrings-Int
+    - group: NativeClientOAuthConfiguration-Int
+    - name: k8s-namespace
+      value: sptcloud-int
+    - name: route-host
+      value: cloud-int.sptab.com
+  jobs:  
+  - deployment: Internal
+    displayName: Deploy to Internal
+    environment: sptcloud-int.sptcloud-int
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: Replace tokens in config/**/*.yml
+            inputs:
+              rootDirectory: $(Pipeline.Workspace)/manifests
+              targetFiles: '**/*.yml'
+              keepToken: true
+              tokenPrefix: $(
+              tokenSuffix: )
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              manifests: $(Pipeline.Workspace)/manifests/config/k8s/+(deployment.yml|service.yml|ingress-route.yml)
+
+- stage: Deploy_PROD
+  displayName: PROD
+  dependsOn: Deploy_INT
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/tags/prod'))
+  variables:
+    - group: ApplicationInsights-InstrumentationKey-Prod
+    - group: ConnectionStrings-Prod
+    - group: NativeClientOAuthConfiguration-Prod
+    - name: k8s-namespace
+      value: sptcloud-prod
+    - name: route-host
+      value: cloud.sptab.com
+  jobs:  
+  - deployment: Production
+    displayName: Deploy to Production
+    environment: sptcloud-prod.sptcloud-prod
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: Replace tokens in config/**/*.yml
+            inputs:
+              rootDirectory: $(Pipeline.Workspace)/manifests
+              targetFiles: '**/*.yml'
+              keepToken: true
+              tokenPrefix: $(
+              tokenSuffix: )
+          - task: KubernetesManifest@0
+            inputs:
+              action: 'deploy'
+              manifests: $(Pipeline.Workspace)/manifests/config/k8s/+(deployment.yml|service.yml|ingress-route.yml)
+              
+- stage: Deploy_PR
+  displayName: Deploy PR review app
+  dependsOn: Build
+  condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/pull/'))
+  variables:  
+    - group: ApplicationInsights-InstrumentationKey-Dev
+    - group: ConnectionStrings-Dev
+    - group: NativeClientOAuthConfiguration-Dev
+    - name: k8s-namespace
+      value: $(k8ns-pr)
+    - name: route-host
+      value: $(k8ns-pr).$(pr-host-suffix)
+    - name: NativeClientOAuthConfiguration-Authority
+      value: https://$(k8ns-pr).$(pr-host-suffix)
+    - name: NativeClientOAuthConfiguration-ResourceId
+      value: https://$(k8ns-pr).$(pr-host-suffix)/resources
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy job
+    environment: sptcloud-dev.sptcloud-dev
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: Bash@3
+            displayName: Generate namespace manifest file
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo 'apiVersion: v1' > $(AGENT.TEMPDIRECTORY)/namespace.yml
+                echo 'kind: Namespace' >> $(AGENT.TEMPDIRECTORY)/namespace.yml
+                echo 'metadata:' >> $(AGENT.TEMPDIRECTORY)/namespace.yml
+                echo '  name: $(k8ns-pr)' >> $(AGENT.TEMPDIRECTORY)/namespace.yml
+
+          - task: KubernetesManifest@0
+            displayName: Apply namespace manifest file
+            inputs:
+              kubernetesServiceConnection: $(k8s-admin-endpoint)
+              action: 'deploy'
+              namespace: $(k8ns-pr)
+              manifests: $(AGENT.TEMPDIRECTORY)/namespace.yml
+              
+          - task: Kubernetes@1
+            displayName: 'Add devspace label'
+            inputs:
+              kubernetesServiceEndpoint: $(k8s-admin-endpoint)
+              command: label
+              arguments: '--overwrite ns $(k8ns-pr) azds.io/space=true'
+              checkLatest: true
+
+          - task: Kubernetes@1
+            displayName: 'Setup root devspace to dev'
+            inputs:
+              kubernetesServiceEndpoint: $(k8s-admin-endpoint)
+              command: label
+              arguments: '--overwrite ns $(k8ns-pr) azds.io/parent-space=sptcloud-dev'
+              checkLatest: true
+          
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            continueOnError: true
+            inputs:
+              kubernetesServiceConnection: $(k8s-admin-endpoint)
+              action: createSecret
+              secretName: pull-secret-1
+              namespace: $(k8ns-pr)
+              forceUpdate: true
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)          
+          
+          - task: qetza.replacetokens.replacetokens-task.replacetokens@3
+            displayName: Replace tokens in config/**/*.yml
+            inputs:
+              rootDirectory: $(Pipeline.Workspace)/manifests
+              targetFiles: '**/*.yml'
+              keepToken: true
+              tokenPrefix: $(
+              tokenSuffix: )
+              
+          - task: KubernetesManifest@0
+            inputs:
+              kubernetesServiceConnection: $(k8s-admin-endpoint)
+              action: 'deploy'
+              namespace: $(k8ns-pr)
+              manifests: $(Pipeline.Workspace)/manifests/config/k8s/+(deployment.yml|service.yml|ingress.yml)
+                    
+          - task: PowerShell@2
+            displayName: "Write Pull Request Comment"
+            inputs:
+              targetType: "inline"
+              script: |                      
+                Write-Host "Write Pull Request comment"
+            
+                $organization = "$(vsts-organization)"
+                $project = "$(vsts-project)"
+                $repositoryId = "$(vsts-repository)"
+                $pullRequestId = $(System.PullRequest.PullRequestId)
+                $system_accesstoken = "$(System.AccessToken)"
+            
+                $pullRequestThreadUrl = "https://dev.azure.com/$organization/$project/_apis/git/repositories/$repositoryId/pullRequests/$pullRequestId/threads?api-version=5.1"
+            
+                # Create a new comment (set as Closed)
+                $comment = @{
+                      comments = @(
+                          @{
+                              content="Deployed at: https://$(k8ns-pr).$(pr-host-suffix)"
+                              parentCommentId=0
+                              commentType=1
+                          }
+                        )
+                        status = 4
+                    }
+            
+                    $json = @($comment) | ConvertTo-Json
+                    $commentResult = Invoke-RestMethod -Uri $pullRequestThreadUrl -Method Post -Body $json -ContentType "application/json" -Headers @{Authorization = "Bearer $system_accesstoken"}

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portal-web
+  namespace: $(k8s-namespace)
+spec:
+  replicas: $(replicas)
+  selector:
+      matchLabels:
+        name: portal-web
+  template:
+    metadata:
+      labels:
+        name: portal-web
+    spec:
+      containers:
+      - name: portal-web
+        image: sptcloud.azurecr.io/portal-web:$(image-tag)
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80        
+        env:
+        - name: NativeClientOAuthConfiguration__Authority
+          value: "$(NativeClientOAuthConfiguration-Authority)"
+        - name: NativeClientOAuthConfiguration__ResourceId
+          value: "$(NativeClientOAuthConfiguration-ResourceId)"
+      imagePullSecrets:
+      - name: pull-secret-1

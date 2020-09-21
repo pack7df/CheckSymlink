@@ -1,0 +1,6 @@
+[submodule "core"]
+	path = core
+	url = https://sptab.visualstudio.com/CLOUD/_git/core
+[submodule "core-ui"]
+	path = core-ui
+	url = https://sptab.visualstudio.com/CLOUD/_git/core-ui
